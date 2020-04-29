@@ -1,10 +1,10 @@
 {
   "devToolsPort": 19002,
-  "expoServerPort": null,
-  "packagerPort": null,
-  "packagerPid": null,
-  "expoServerNgrokUrl": null,
-  "packagerNgrokUrl": null,
-  "ngrokPid": null,
+  "expoServerPort": 19000,
+  "packagerPort": 19001,
+  "packagerPid": 7612,
+  "expoServerNgrokUrl": "https://af-hw3.anonymous.espressohelper.exp.direct",
+  "packagerNgrokUrl": "https://packager.af-hw3.anonymous.espressohelper.exp.direct",
+  "ngrokPid": 2124,
   "webpackServerPort": null
 }
