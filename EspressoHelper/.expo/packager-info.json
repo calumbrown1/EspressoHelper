@@ -2,9 +2,9 @@
   "devToolsPort": 19002,
   "expoServerPort": 19000,
   "packagerPort": 19001,
-  "packagerPid": 7612,
-  "expoServerNgrokUrl": "https://af-hw3.anonymous.espressohelper.exp.direct",
-  "packagerNgrokUrl": "https://packager.af-hw3.anonymous.espressohelper.exp.direct",
-  "ngrokPid": 2124,
+  "packagerPid": 10376,
+  "expoServerNgrokUrl": null,
+  "packagerNgrokUrl": null,
+  "ngrokPid": null,
   "webpackServerPort": null
 }
