@@ -1,8 +1,8 @@
 {
+  "urlRandomness": "iw-f3z",
   "hostType": "lan",
   "lanType": "ip",
   "dev": true,
   "minify": false,
-  "urlRandomness": "nf-2ar",
   "https": true
 }
