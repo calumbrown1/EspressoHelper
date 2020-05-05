@@ -14,28 +14,46 @@ let SqlSetupChecked = false;
 const db = SQLite.openDatabase(DBName);
 
 
-export default function WriteBrewPropertiesToDatabase(brew)
+function WriteBrewPropertiesToDatabase(brew)
 {
-    console.log(brew);
-    if(!SqlSetupChecked)
-        SetupDB();
+    return new Promise(function(resolve, reject){
+        if(!SqlSetupChecked)
+            SetupDB();
 
         db.transaction(tx => {
-            tx.executeSql("INSERT INTO Brews (brew_name, brew_date) VALUES (?,?)", [brew.Type, brew.Date]);
-            tx.executeSql("SELECT * FROM BREWS", [], (res, reso) => {console.log(reso)});
-        }, (err)=>console.log(err), (succ)=> console.log(succ));
+            tx.executeSql('INSERT INTO ' + BrewTableName + ' (' + BrewNameColName + ',' + BrewDateTimeColName +') VALUES (?,?)', [brew.Type, brew.Date]);
+            tx.executeSql("SELECT * FROM BREWS", [], (trn, succ) => {resolve(succ)}, (trn, err) => reject(err));
+        });
+    });
+}
 
+function GetBrewLoggerConfigs()
+{
+    return new Promise(function(resolve, reject){
+        if(!SqlSetupChecked)
+            SetupDB();
+    });
 }
 
 function SetupDB()
 {
-    console.log("setting up db")
-    db.transaction(tx => {
-        tx.executeSql('DROP TABLE ' + BrewTableName, []);
+    return new Promise(function(resolve, reject){
+        db.transaction(tx => {
+            tx.executeSql('DROP TABLE ' + BrewTableName, []);
+            tx.executeSql('DROP TABLE ' + BrewPropertiesTableName, []);
+            tx.executeSql('DROP TABLE brew_log_configs');
+        });
+        db.transaction(tx => {
+            tx.executeSql('CREATE TABLE IF NOT EXISTS ' + BrewTableName + ' (brew_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_name varchar(45), ' + BrewDateTimeColName + ' varchar(15))', []);
+            tx.executeSql('CREATE TABLE IF NOT EXISTS ' + BrewPropertiesTableName + ' (brew_prop_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_id varchar(45), brew_prop_name varchar(45), brew_prop_val varchar(45))', []);
+            tx.executeSql('CREATE TABLE IF NOT EXISTS brew_log_configs (brew_log_config_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_log_config_name varchar(45))' )
+            tx.executeSql('CREATE TABLE IF NOT EXISTS brew_log_config_props (brew_log_config_prop_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_prop_name varchar(45), brew_log_config_name varchar(45)');
+            tx.executeSql('INSERT INTO brew_log_configs (brew_log_config_name) VALUES ("Espresso"), ("French Press"), ("V60"), ("Chemex"), ("AeroPress"), ("Ibik")');
+            tx.executeSql('SELECT * FROM brew_log_configs', [], (trn, succ)=>console.log(succ));
+        });
+        SqlSetupChecked = true;
     });
-    db.transaction(tx => {
-        tx.executeSql('CREATE TABLE IF NOT EXISTS ' + BrewTableName + ' (brew_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_name varchar(45), ' + BrewDateTimeColName + ' varchar(15))', []);
-        tx.executeSql('CREATE TABLE IF NOT EXISTS ' + BrewPropertiesTableName + ' (brew_prop_id varchar(45) PRIMARY KEY NOT NULL, brew_id varchar(45), brew_prop_name varchar(45), brew_prop_val varchar(45))', []);
-    });
-    SqlSetupChecked = true;
 }
+
+
+export { WriteBrewPropertiesToDatabase, GetBrewLoggerConfigs }

@@ -3,42 +3,76 @@ import { StyleSheet, Text, View, TextInput } from 'react-native';
 import { vw, vh, vmin, vmax } from 'react-native-expo-viewport-units';
 import {Picker} from '@react-native-community/picker';
 import MainPageButton from './button.js';
-import WriteBrewPropertiesToDatabase from './DBHelper';
+import DBHelper, {WriteBrewPropertiesToDatabase, GetBrewLoggerConfigs} from './DBHelper';
+import {GetBrewLogConfigs} from './Config.js';
 
 let BrewProperties = [];
 let BrewType = '';
+let LoggerConfigs = [];
+let SelectedLoggerConfig;
 
 export default function LogPage({navigation})
 {
+  LoggerConfigs = GetBrewLogConfigs();
+  BrewProperties = [];
+  
+  if(SelectedLoggerConfig == null || SelectedLoggerConfig == undefined)
+    SelectedLoggerConfig = LoggerConfigs[0];
+  
+  const [selectedValue, setSelectedValue] = useState(SelectedLoggerConfig);
   return (
   <View style={styles.logPageContainer}>
-    {BrewTypeSelector()}
-    {LoggerObject("Grounds Weight (g)")}
-    {LoggerObject("Grounds Setting")}
-    {LoggerObject("Result Weight (g)")}
-    {LoggerObject("Desired Ratio (1:?)")}
+    <Picker
+      selectedValue={selectedValue}
+      style={{height: 50, width: vw(90), borderColor: 'black', borderWidth: 1, borderRadius: 30}}
+      onValueChange={(itemValue, itemIndex) => {
+        console.log(itemValue);
+        BrewType = itemValue;
+        SelectedLoggerConfig = LoggerConfigs[GetSelectedBrewTypeByName(itemValue)];
+        console.log(SelectedLoggerConfig);
+        setSelectedValue(itemValue); 
+      }
+    }
+      >
+      {BrewSelectorItems()}
+    </Picker>
+    {LoggerProperties()}
     <MainPageButton text="Log Brew" onPress={()=> LogBrew()}></MainPageButton>
   </View>
   );
 }
 
-function BrewTypeSelector(){
-  const [selectedValue, setSelectedValue] = useState("Espresso");
-  BrewType = selectedValue;
-  return (
-    <Picker
-      selectedValue={selectedValue}
-      style={{height: 50, width: vw(90), borderColor: 'black', borderWidth: 1, borderRadius: 30}}
-      onValueChange={(itemValue, itemIndex) => {setSelectedValue(itemValue); BrewType = itemValue;}
-        /* TODO CHANGE LOGGER OBJECTS AND ANALYZER BASED ON NEW VALUE*/}
-      >
-      <Picker.Item label="Espresso" value="Espresso" />
-      <Picker.Item label="Pourover" value="Pourover" />
-      <Picker.Item label="French Press" value="French Press" />
-      <Picker.Item label="Aeropress" value="Aeropress" />
-      <Picker.Item label="Ibik" value="Ibik" />
-    </Picker>
+function BrewSelectorItems()
+{
+  let pickerItems = [];
+
+  for(let i=0; i<LoggerConfigs.length; i++)
+  {
+    pickerItems.push(PickerItem(LoggerConfigs[i].Type));
+  }
+
+  return pickerItems;
+}
+
+function PickerItem(name)
+{
+  return(
+    <Picker.Item label={name} value={name} />
   );
+}
+
+function LoggerProperties()
+{
+  let properties = [];
+  for(let i=0; i<SelectedLoggerConfig.Properties.length; i++)
+  {
+    properties.push(LoggerObject(SelectedLoggerConfig.Properties[i]));
+  }
+  return(
+    <View>
+      {properties}
+    </View>
+  )
 }
 
 function LoggerObject(name)
@@ -102,6 +136,17 @@ function GetLoggedBrewPropertyIndex(name)
   return index;
 }
 
+function GetSelectedBrewTypeByName(name)
+{
+  let index = -1;
+  LoggerConfigs.forEach((conf) => {
+    if(conf.Type === name) 
+      index = LoggerConfigs.indexOf(conf);
+  });
+
+  return index;
+}
+
 function BrewProperty(name, value)
 {
   this.Name = name;
@@ -110,9 +155,12 @@ function BrewProperty(name, value)
 
 function LogBrew()
 {
-  console.log("logging brew");
   let brew = new Brew(BrewType, BrewProperties);
-  WriteBrewPropertiesToDatabase(brew);
+  var brews = WriteBrewPropertiesToDatabase(brew).then(function(success) {
+    console.log(success);
+  }, function (err){
+    console.log(err);
+  });
 }
 
 function Brew(type, properties)
@@ -131,3 +179,4 @@ function LoggerConfig(type, properties, validationFunction, analyzerFunction)
   this.Validator = validationFunction;
   this.Analizer = analyzerFunction;
 }
+
