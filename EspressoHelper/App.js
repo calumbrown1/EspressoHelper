@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, Button, Alert } from 'react-native';
 import MainPageButton from './Components/button.js';
 import LogPage from './Components/LogPage.js';
+import ViewLogsPage from './Components/ViewLogsPage.js';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { vw, vh, vmin, vmax } from 'react-native-expo-viewport-units';
@@ -30,6 +31,15 @@ export default function App() {
             fontWeight: 'bold',
           },
         }} />
+        <Stack.Screen name="View Logs" component={ViewLogsPage} options={{          
+          headerStyle: {
+            backgroundColor: '#432711',
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }} />
         </Stack.Navigator>
       </NavigationContainer>
   );
@@ -41,7 +51,7 @@ export function HomePage({navigation})
     <View style={styles.container}>
       <View style={styles.buttonContainer}>
         <MainPageButton text="Log Brew" onPress={()=> navigation.navigate("Log Brew")}></MainPageButton>
-        <MainPageButton text="View Logged Brews" onPress={()=> Alert.alert('pressed')}></MainPageButton>
+        <MainPageButton text="View Logged Brews" onPress={()=> navigation.navigate("View Logs")}></MainPageButton>
       </View>
     </View>
   );

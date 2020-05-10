@@ -17,12 +17,41 @@ const db = SQLite.openDatabase(DBName);
 function WriteBrewPropertiesToDatabase(brew)
 {
     return new Promise(function(resolve, reject){
+
         if(!SqlSetupChecked)
             SetupDB();
 
         db.transaction(tx => {
-            tx.executeSql('INSERT INTO ' + BrewTableName + ' (' + BrewNameColName + ',' + BrewDateTimeColName +') VALUES (?,?)', [brew.Type, brew.Date]);
-            tx.executeSql("SELECT * FROM BREWS", [], (trn, succ) => {resolve(succ)}, (trn, err) => reject(err));
+            tx.executeSql('INSERT INTO ' + BrewTableName + ' (' + BrewNameColName + ',' + BrewDateTimeColName +') VALUES (?,?)', [brew.Type, brew.Date],            
+            function (tx, res){
+                tx.executeSql('SELECT * FROM ' + BrewTableName + ' WHERE ' + BrewNameColName + ' = "' + brew.Type + '" ORDER BY ' + BrewIDColName + ' ASC',[],
+                function (tx, res){
+                    var newBrew = res.rows._array[res.rows._array.length -1];
+
+                    brew.Properties.forEach(prop => {
+                        tx.executeSql('INSERT INTO ' + BrewPropertiesTableName + ' (brew_id, brew_prop_name, brew_prop_val) VALUES (?,?,?)',
+                        [newBrew.brew_id, prop.Name, prop.Value],
+                        function (tx, succ)
+                        {
+                        },
+                        function (tx, err)
+                        {
+                            console.log("failed to insert " + prop.Name);
+                            console.log(err);
+                        });
+                    });
+                    resolve();
+                }, 
+                function (ex, err)
+                {
+                    console.log(err);
+                });
+            }, 
+            function (tx, err)
+            {
+                console.log(err);
+                reject();
+            });
         });
     });
 }
@@ -38,22 +67,91 @@ function GetBrewLoggerConfigs()
 function SetupDB()
 {
     return new Promise(function(resolve, reject){
+        console.log("setting up");
         db.transaction(tx => {
-            tx.executeSql('DROP TABLE ' + BrewTableName, []);
-            tx.executeSql('DROP TABLE ' + BrewPropertiesTableName, []);
-            tx.executeSql('DROP TABLE brew_log_configs');
+            tx.executeSql('DROP TABLE ' + BrewTableName, [],
+            function (tx, res)
+            {
+                tx.executeSql('DROP TABLE ' + BrewPropertiesTableName, [], 
+                function (tx, succ)
+                {
+                    console.log(succ);
+                },
+                function (tx, err)
+                {
+                    console.log(err);
+                });
+            },
+            function (tx, err)
+            {
+                console.log(err);
+            });
+            
         });
+        
         db.transaction(tx => {
-            tx.executeSql('CREATE TABLE IF NOT EXISTS ' + BrewTableName + ' (brew_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_name varchar(45), ' + BrewDateTimeColName + ' varchar(15))', []);
-            tx.executeSql('CREATE TABLE IF NOT EXISTS ' + BrewPropertiesTableName + ' (brew_prop_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_id varchar(45), brew_prop_name varchar(45), brew_prop_val varchar(45))', []);
-            tx.executeSql('CREATE TABLE IF NOT EXISTS brew_log_configs (brew_log_config_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_log_config_name varchar(45))' )
-            tx.executeSql('CREATE TABLE IF NOT EXISTS brew_log_config_props (brew_log_config_prop_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_prop_name varchar(45), brew_log_config_name varchar(45)');
-            tx.executeSql('INSERT INTO brew_log_configs (brew_log_config_name) VALUES ("Espresso"), ("French Press"), ("V60"), ("Chemex"), ("AeroPress"), ("Ibik")');
-            tx.executeSql('SELECT * FROM brew_log_configs', [], (trn, succ)=>console.log(succ));
+            tx.executeSql('CREATE TABLE IF NOT EXISTS ' + BrewTableName + ' (brew_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_name varchar(45), ' + BrewDateTimeColName + ' varchar(15))', [],
+            function (tx, res)
+            {
+                tx.executeSql('CREATE TABLE IF NOT EXISTS ' + BrewPropertiesTableName + ' (brew_prop_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_id varchar(45), brew_prop_name varchar(45), brew_prop_val varchar(45))', [],
+                function (tx, res)
+                {
+                    tx.executeSql('CREATE TABLE IF NOT EXISTS brew_log_configs (brew_log_config_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_log_config_name varchar(45))',[],            function (tx, res)
+                    {
+                        tx.executeSql('CREATE TABLE IF NOT EXISTS brew_log_config_props (brew_log_config_prop_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_prop_name varchar(45), brew_log_config_name varchar(45))', [],            function (tx, res)
+                        {
+                            tx.executeSql('INSERT INTO brew_log_configs (brew_log_config_name) VALUES ("Espresso"), ("French Press"), ("V60"), ("Chemex"), ("AeroPress"), ("Ibik")', [],             function (tx, res)
+                            {
+                                SqlSetupChecked = true;
+                                resolve();
+                            },
+                            function (tx, err)
+                            {
+                                console.log(err);
+                            });
+                        },
+                        function (tx, err)
+                        {
+                            console.log(err);
+                        });
+                    },
+                    function (tx, err)
+                    {
+                        console.log(err);
+                    });
+                },
+                function (tx, err)
+                {
+                    console.log(err);
+                });
+            },
+            function (tx, err)
+            {
+                console.log(err);
+            });
         });
-        SqlSetupChecked = true;
+
     });
 }
 
+function GetBrews()
+{
+    return new Promise(function(resolve, reject){
+        if(!SqlSetupChecked)
+            SetupDB();
 
-export { WriteBrewPropertiesToDatabase, GetBrewLoggerConfigs }
+        db.transaction(tx => {
+            tx.executeSql("SELECT * FROM " + BrewTableName + " ORDER BY " + BrewIDColName + " DESC;", [], 
+            function(tx, brewRes){
+                var brews = brewRes.rows._array;
+                let completeBrewInfo = [];
+                resolve(brews);
+            },
+            function(tx, err)
+            {
+                console.log(err);
+            });
+        });
+    });
+}
+export { WriteBrewPropertiesToDatabase, GetBrewLoggerConfigs, GetBrews }

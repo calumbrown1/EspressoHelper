@@ -1,5 +1,5 @@
 import React, { PropTypes, useState } from 'react';
-import { StyleSheet, Text, View, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Alert } from 'react-native';
 import { vw, vh, vmin, vmax } from 'react-native-expo-viewport-units';
 import {Picker} from '@react-native-community/picker';
 import MainPageButton from './button.js';
@@ -10,14 +10,18 @@ let BrewProperties = [];
 let BrewType = '';
 let LoggerConfigs = [];
 let SelectedLoggerConfig;
+let Navigation;
 
 export default function LogPage({navigation})
 {
+  Navigation = navigation;
   LoggerConfigs = GetBrewLogConfigs();
   BrewProperties = [];
-  
+
   if(SelectedLoggerConfig == null || SelectedLoggerConfig == undefined)
     SelectedLoggerConfig = LoggerConfigs[0];
+
+  BrewType = SelectedLoggerConfig.Type;
   
   const [selectedValue, setSelectedValue] = useState(SelectedLoggerConfig);
   return (
@@ -26,7 +30,6 @@ export default function LogPage({navigation})
       selectedValue={selectedValue}
       style={{height: 50, width: vw(90), borderColor: 'black', borderWidth: 1, borderRadius: 30}}
       onValueChange={(itemValue, itemIndex) => {
-        console.log(itemValue);
         BrewType = itemValue;
         SelectedLoggerConfig = LoggerConfigs[GetSelectedBrewTypeByName(itemValue)];
         console.log(SelectedLoggerConfig);
@@ -116,11 +119,9 @@ function HandleBrewPropertyLogging(name, value)
   let brewIndex = GetLoggedBrewPropertyIndex(name); 
 
   if (brewIndex > -1){
-    console.log('did an update');
     BrewProperties[brewIndex].Value = value;
   }
   else{
-    console.log('no existing one found, adding a new property.')
     BrewProperties.push(new BrewProperty(name, value));
   }
 }
@@ -157,18 +158,30 @@ function LogBrew()
 {
   let brew = new Brew(BrewType, BrewProperties);
   var brews = WriteBrewPropertiesToDatabase(brew).then(function(success) {
-    console.log(success);
+    Alert.alert("Brew Logged.", "Go to log page?", [
+      {
+        text: 'No',
+        style: 'cancel'
+      },
+      {
+        text: 'Yes',
+        onPress: ()=> {
+          Navigation.navigate("View Logs");
+        }
+      }
+    ])
   }, function (err){
-    console.log(err);
+    Alert.alert("Something went wrong. Sorry.");
   });
 }
 
 function Brew(type, properties)
 {
   var date = new Date();
-
+  var formattedDate = date.getHours() + ':' + date.getMinutes() + ' ' + date.getDate() + '.' + date.getMonth() + '.' + date.getFullYear(); 
+  console.log(formattedDate);
   this.Type = type;
-  this.Date = date.getDate();
+  this.Date = formattedDate;
   this.Properties = properties;
 }
 
