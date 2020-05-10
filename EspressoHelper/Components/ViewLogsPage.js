@@ -25,11 +25,11 @@ class BrewList extends React.Component{
         style={styles.brewItemStyle}>
         <View style={styles.brewItemStyle}>
           <View style={styles.brewItemLeftCol}>
-            <Text>{ID}</Text>
+            <Text style={styles.brewID}>{ID}</Text>
           </View>
           <View style={styles.brewItemRightCol}>
-            <Text>{Type}</Text>
-            <Text>{DateTime}</Text>
+            <Text style={styles.brewType}>{Type}</Text>
+            <Text style={styles.brewDate}>{DateTime}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -57,8 +57,6 @@ class BrewList extends React.Component{
   }
 
   render(){
-    console.log("state");
-    console.log(this.state);
     return (
       <FlatList
         renderItem={({ item }) => ( this.renderItem(item))}
@@ -98,13 +96,15 @@ function GetBrewData()
           function(brew){
             brews.push(
               {
-                ID: brew.brew_id,
-                Type: brew.brew_name,
-                DateTime: brew.brew_date
+                ID: brew.ID,
+                Type: brew.Type,
+                DateTime: brew.DateTime,
+                Properties: brew.Properties
               }
             )
           });
 
+        console.log(brews);
         resolve(brews);
       },
       function(err){
@@ -118,13 +118,32 @@ const styles = StyleSheet.create({
       padding: 16
     },
     brewItemStyle:{
-
+      borderRadius:8,
+      paddingHorizontal:8,
+      backgroundColor: '#2C1503',
+      width: vw(90),
+      alignContent: "center",
+      marginVertical: 8,
+      display: "flex",
+      flexDirection: "row"
     },
     brewItemLeftCol:{
-
+      flex:1
     },
     brewItemRightCol:{
-
+      flex: 3
+    },
+    brewDate:{
+      color: "grey",
+      fontSize: 12
+    },
+    brewID:{
+      fontSize: 26,
+      color: "white"
+    },
+    brewType:{
+      color: "white",
+      fontSize: 20
     }
   });
 

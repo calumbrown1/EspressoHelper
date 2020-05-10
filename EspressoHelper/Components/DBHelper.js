@@ -145,7 +145,30 @@ function GetBrews()
             function(tx, brewRes){
                 var brews = brewRes.rows._array;
                 let completeBrewInfo = [];
-                resolve(brews);
+
+                brews.forEach(function(brew){
+                    tx.executeSql("SELECT * FROM " + BrewPropertiesTableName + " WHERE " + BrewIDColName + " = " + brew.brew_id+".0", [], 
+                    function(tx, succ){
+                        var props = succ.rows._array;
+                        console.log("brew");
+                        completeBrewInfo.push({
+                            ID: brew.brew_id,
+                            Type: brew.brew_name,
+                            DateTime: brew.brew_date,
+                            Properties: props
+                        })
+
+                        if(completeBrewInfo.length >= brews.length)
+                        {
+                            console.log(completeBrewInfo)
+                            resolve(completeBrewInfo);
+                        }
+                    },
+                    function(tx, err)
+                    {
+                        console.log(err);
+                    });
+                })
             },
             function(tx, err)
             {
