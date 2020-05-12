@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { StyleSheet, Text, View, Button, Alert, FlatList, state, setState, TouchableOpacity } from 'react-native';
 import MainPageButton from './button.js';
 import LogPage from './LogPage.js';
@@ -8,20 +8,23 @@ import { vw, vh, vmin, vmax } from 'react-native-expo-viewport-units';
 import DBHelper, {WriteBrewPropertiesToDatabase, GetBrewLoggerConfigs, GetBrews} from './DBHelper';
 import { setLightEstimationEnabled } from 'expo/build/AR';
 
+let Navigation;
 
 class BrewList extends React.Component{
 
   brewList = undefined;
 
-  renderItem = ({Type, ID, DateTime}) => {
-    console.log("hello");
-    console.log(Type);
-    console.log(ID);
-    console.log(DateTime)
-
+  renderItem = ({Type, ID, DateTime, Properties}) => {
     return (
       <TouchableOpacity
-        onPress={() => console.log(brew)}
+        onPress={function(){
+          console.log("touched");
+          Navigation.navigate("Brew", {
+          BrewType: Type,
+          BrewID: ID,
+          BrewDate: DateTime,
+          BrewProps: Properties
+        })}}
         style={styles.brewItemStyle}>
         <View style={styles.brewItemStyle}>
           <View style={styles.brewItemLeftCol}>
@@ -64,19 +67,14 @@ class BrewList extends React.Component{
         data={this.state.brewData}
         extraData={this.state.brewData}
       />
-      /*
-      <View style={styles.pageContainer}>
-        <FlatList
-          data={this.state}
-          renderItem={this.renderItem}
-          extraData={this.state}/>
-      </View>*/
       );
   }
 }
 
 export default  function ViewLogsPage({navigation})
 {
+  Navigation = navigation;
+
   return (
   <View style={styles.pageContainer}>
     <BrewList/>
@@ -104,7 +102,6 @@ function GetBrewData()
             )
           });
 
-        console.log(brews);
         resolve(brews);
       },
       function(err){
@@ -121,11 +118,11 @@ const styles = StyleSheet.create({
       borderRadius:8,
       paddingHorizontal:8,
       backgroundColor: '#2C1503',
-      width: vw(90),
       alignContent: "center",
       marginVertical: 8,
       display: "flex",
-      flexDirection: "row"
+      flexDirection: "row",
+      flex: 1
     },
     brewItemLeftCol:{
       flex:1
@@ -144,28 +141,9 @@ const styles = StyleSheet.create({
     brewType:{
       color: "white",
       fontSize: 20
+    },
+    brewModal:{
+      width:vw(100),
+      height:vh(100)
     }
   });
-
-
-function BrewItem(brew)
-{
-  console.log("new brew item");
-  console.log(brew);
-  return (
-    <TouchableOpacity
-      onPress={() => console.log(brew)}
-      style={brewItemStyle}
-    >
-      <View style={brewItemStyle}>
-        <View style={brewItemLeftCol}>
-          <Text>{brew.ID}</Text>
-        </View>
-        <View style={brewItemRightCol}>
-          <Text>{brew.Type}</Text>
-          <Text>{brew.DateTime}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-}

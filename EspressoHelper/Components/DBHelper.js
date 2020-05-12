@@ -68,27 +68,30 @@ function SetupDB()
 {
     return new Promise(function(resolve, reject){
         console.log("setting up");
-        db.transaction(tx => {
-            tx.executeSql('DROP TABLE ' + BrewTableName, [],
-            function (tx, res)
-            {
-                tx.executeSql('DROP TABLE ' + BrewPropertiesTableName, [], 
-                function (tx, succ)
+
+        if (__DEV__) {
+            db.transaction(tx => {
+                tx.executeSql('DROP TABLE ' + BrewTableName, [],
+                function (tx, res)
                 {
-                    console.log(succ);
+                    tx.executeSql('DROP TABLE ' + BrewPropertiesTableName, [], 
+                    function (tx, succ)
+                    {
+                        console.log(succ);
+                    },
+                    function (tx, err)
+                    {
+                        console.log(err);
+                    });
                 },
                 function (tx, err)
                 {
                     console.log(err);
                 });
-            },
-            function (tx, err)
-            {
-                console.log(err);
+                
             });
-            
-        });
-        
+        }
+
         db.transaction(tx => {
             tx.executeSql('CREATE TABLE IF NOT EXISTS ' + BrewTableName + ' (brew_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_name varchar(45), ' + BrewDateTimeColName + ' varchar(15))', [],
             function (tx, res)
@@ -96,29 +99,8 @@ function SetupDB()
                 tx.executeSql('CREATE TABLE IF NOT EXISTS ' + BrewPropertiesTableName + ' (brew_prop_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_id varchar(45), brew_prop_name varchar(45), brew_prop_val varchar(45))', [],
                 function (tx, res)
                 {
-                    tx.executeSql('CREATE TABLE IF NOT EXISTS brew_log_configs (brew_log_config_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_log_config_name varchar(45))',[],            function (tx, res)
-                    {
-                        tx.executeSql('CREATE TABLE IF NOT EXISTS brew_log_config_props (brew_log_config_prop_id INTEGER PRIMARY KEY AUTOINCREMENT, brew_prop_name varchar(45), brew_log_config_name varchar(45))', [],            function (tx, res)
-                        {
-                            tx.executeSql('INSERT INTO brew_log_configs (brew_log_config_name) VALUES ("Espresso"), ("French Press"), ("V60"), ("Chemex"), ("AeroPress"), ("Ibik")', [],             function (tx, res)
-                            {
-                                SqlSetupChecked = true;
-                                resolve();
-                            },
-                            function (tx, err)
-                            {
-                                console.log(err);
-                            });
-                        },
-                        function (tx, err)
-                        {
-                            console.log(err);
-                        });
-                    },
-                    function (tx, err)
-                    {
-                        console.log(err);
-                    });
+                    SqlSetupChecked = true;
+                    resolve();
                 },
                 function (tx, err)
                 {

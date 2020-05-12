@@ -32,7 +32,6 @@ export default function LogPage({navigation})
       onValueChange={(itemValue, itemIndex) => {
         BrewType = itemValue;
         SelectedLoggerConfig = LoggerConfigs[GetSelectedBrewTypeByName(itemValue)];
-        console.log(SelectedLoggerConfig);
         setSelectedValue(itemValue); 
       }
     }
@@ -51,16 +50,16 @@ function BrewSelectorItems()
 
   for(let i=0; i<LoggerConfigs.length; i++)
   {
-    pickerItems.push(PickerItem(LoggerConfigs[i].Type));
+    pickerItems.push(PickerItem(LoggerConfigs[i].Type, i));
   }
 
   return pickerItems;
 }
 
-function PickerItem(name)
+function PickerItem(name, index)
 {
   return(
-    <Picker.Item label={name} value={name} />
+    <Picker.Item key={index} label={name} value={name} />
   );
 }
 
@@ -69,7 +68,7 @@ function LoggerProperties()
   let properties = [];
   for(let i=0; i<SelectedLoggerConfig.Properties.length; i++)
   {
-    properties.push(LoggerObject(SelectedLoggerConfig.Properties[i]));
+    properties.push(LoggerObject(SelectedLoggerConfig.Properties[i], i));
   }
   return(
     <View>
@@ -78,10 +77,10 @@ function LoggerProperties()
   )
 }
 
-function LoggerObject(name)
+function LoggerObject(name, index)
 {
   return (
-    <View style={styles.loggerContainer}>
+    <View key={index} style={styles.loggerContainer}>
       <Text style={styles.loggerTitle}>{name}</Text>
       <TextInput style={styles.textInput} keyboardType='decimal-pad' onChangeText={(value) => HandleBrewPropertyLogging(name, value)}></TextInput>
     </View>
